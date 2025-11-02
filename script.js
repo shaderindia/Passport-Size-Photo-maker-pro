@@ -583,22 +583,35 @@ document.addEventListener('DOMContentLoaded', function () {
     let format = formatSelect.value;
     let link = document.createElement('a');
     link.download = `passport-photo.${format}`;
-    link.href = outputCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`, 0.85);
+    link.href = outputCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`, 0.95);
     link.click();
   });
   downloadHQBtn.addEventListener('click', () => {
-    let origW = outputCanvas.width, origH = outputCanvas.height;
-    outputCanvas.width = origW * 2;
-    outputCanvas.height = origH * 2;
-    renderCanvas();
-    let format = formatSelect.value;
-    let link = document.createElement('a');
-    link.download = `passport-photo-hq.${format}`;
-    link.href = outputCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`, 1.0);
-    link.click();
-    outputCanvas.width = origW;
-    outputCanvas.height = origH;
-    renderCanvas();
+    // Show loading feedback
+    let originalText = downloadHQBtn.innerHTML;
+    downloadHQBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+    downloadHQBtn.disabled = true;
+    
+    // Use setTimeout to allow UI to update
+    setTimeout(() => {
+      let origW = outputCanvas.width, origH = outputCanvas.height;
+      // Use 4x resolution for ultra-high quality
+      outputCanvas.width = origW * 4;
+      outputCanvas.height = origH * 4;
+      renderCanvas();
+      let format = formatSelect.value;
+      let link = document.createElement('a');
+      link.download = `passport-photo-hq.${format}`;
+      link.href = outputCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`, 1.0);
+      link.click();
+      outputCanvas.width = origW;
+      outputCanvas.height = origH;
+      renderCanvas();
+      
+      // Restore button
+      downloadHQBtn.innerHTML = originalText;
+      downloadHQBtn.disabled = false;
+    }, 50);
   });
   shareBtn.addEventListener('click', async () => {
     const shareData = {
