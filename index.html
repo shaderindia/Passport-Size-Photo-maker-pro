@@ -50,6 +50,26 @@
       for various requirements. Download or <strong>print passport photos</strong> with our user-friendly and completely free tool.
     </p>
     <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-image"></i> Upload & Crop</h2>
+      <div class="upload-area">
+ <input type="file" id="photo-upload" accept="image/*" aria-label="Upload your photo">
+      </div>
+      <div id="preview-section" class="photo-preview-container hidden">
+        <div id="photo-preview-wrapper">
+          <img id="photo-preview" alt="photo preview">
+          <div id="crop-box" class="hidden"></div>
+        </div>
+        <div class="adjust-hint">
+          Pinch/Zoom or drag to adjust<br>
+          <b>Crop:</b> <button class="btn-main" id="crop-toggle"><i class="fa fa-crop"></i> Crop</button>
+        </div>
+        <div class="adjust-tools">
+          <button id="rotate-left" title="Rotate left"><i class="fa fa-undo"></i></button>
+          <button id="rotate-right" title="Rotate right"><i class="fa fa-redo"></i></button>
+        </div>
+      </div>
+    </section>
+    <section class="card card-glass shadow-lg">
       <h2><i class="fa fa-cog"></i> Settings</h2>
       <div class="settings-grid">
         <div class="form-group">
@@ -126,26 +146,6 @@
             <input type="checkbox" id="show-cutlines" checked>
             <span class="slider"></span>
           </label>
-        </div>
-      </div>
-    </section>
-    <section class="card card-glass shadow-lg">
-      <h2><i class="fa fa-image"></i> Upload & Crop</h2>
-      <div class="upload-area">
- <input type="file" id="photo-upload" accept="image/*" aria-label="Upload your photo">
-      </div>
-      <div id="preview-section" class="photo-preview-container hidden">
-        <div id="photo-preview-wrapper">
-          <img id="photo-preview" alt="photo preview">
-          <div id="crop-box" class="hidden"></div>
-        </div>
-        <div class="adjust-hint">
-          Pinch/Zoom or drag to adjust<br>
-          <b>Crop:</b> <button class="btn-main" id="crop-toggle"><i class="fa fa-crop"></i> Crop</button>
-        </div>
-        <div class="adjust-tools">
-          <button id="rotate-left" title="Rotate left"><i class="fa fa-undo"></i></button>
-          <button id="rotate-right" title="Rotate right"><i class="fa fa-redo"></i></button>
         </div>
       </div>
     </section>
