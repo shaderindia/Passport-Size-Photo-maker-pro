@@ -1,32 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passport Size Photo Maker</title>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FCJR8H4DME"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FCJR8H4DME');
+</script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+ <title>Free Online Passport Photo Maker | Create & Print Passport Photos</title>
+ <meta name="description" content="Create, crop, and print free passport photos online easily. Our tool provides ultra-smooth cropping and zooming, and perfect formatting for various passport photos. Mobile-friendly and user-friendly.">
+ <meta name="keywords" content="passport photo maker, online passport photo, free passport photo, crop passport photo, print passport photo, passport photo online, digital passport photo, passport photo tool, passport photo creator, free passport photo maker, photo cropping tool, passport size photo, passport photo printing">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts (Inter) -->
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="settings">
-        <h2>Settings</h2>
-        <form>
-            <div class="form-group">
-                <label for="margin-top">Margin Top:</label>
-                <input type="number" id="margin-top" name="margin-top" required>
-            </div>
-            <div class="form-group">
-                <label for="margin-left">Margin Left:</label>
-                <input type="number" id="margin-left" name="margin-left" required>
-            </div>
-            <div class="form-group">
-                <label for="margin-right">Margin Right:</label>
-                <input type="number" id="margin-right" name="margin-right" required>
-            </div>
-            <div class="form-group">
-                <label for="margin-bottom">Margin Bottom:</label>
-                <input type="number" id="margin-bottom" name="margin-bottom" required>
-            </div>
-            <button type="submit">Apply Settings</button>
-        </form>
+  <header class="header-glass">
+    <div class="header-content">
+      <h1 class="header-title">
+        <i class="fa fa-passport"></i> Passport Photo Maker
+        <span class="header-badge">2025</span>
+      </h1>
+      <div class="header-sub">
+        Create, crop, and print passport photos — ultra-smooth, mobile friendly, and completely free!
+      </div>
     </div>
+    <div class="header-nav">
+      <button class="nav-btn" id="theme-btn" title="Toggle dark mode">
+        <i class="fa fa-moon"></i>
+      </button>
+      <button class="nav-btn" id="info-btn" title="How to use">
+        <i class="fa fa-info-circle"></i>
+      </button>
+      <button class="nav-btn" id="logout-btn" title="Logout">
+        <i class="fa fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </header>
+  <!-- AdSense Ad: Passport Photo Maker -->
+  <main>
+    <p class="text-center text-lg mb-8">
+      Welcome to our <strong>free online passport photo maker</strong>! Easily <strong>create passport photos</strong>, crop, zoom, and format them
+      for various requirements. Download or <strong>print passport photos</strong> with our user-friendly and completely free tool.
+    </p>
+    <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-image"></i> Upload & Crop</h2>
+      <div class="upload-area">
+ <input type="file" id="photo-upload" accept="image/*" aria-label="Upload your photo">
+ <button class="btn-main" id="remove-bg-btn" style="margin-top:10px;"><i class="fa fa-magic"></i> Remove Background (AI)</button>
+      </div>
+      <div id="preview-section" class="photo-preview-container hidden">
+        <div id="photo-preview-wrapper">
+          <img id="photo-preview" alt="photo preview">
+          <div id="crop-box" class="hidden"></div>
+        </div>
+        <div class="adjust-hint">
+          Pinch/Zoom or drag to adjust<br>
+          <b>Crop:</b> <button class="btn-main" id="crop-toggle"><i class="fa fa-crop"></i> Crop</button>
+        </div>
+        <div class="adjust-tools">
+          <button id="rotate-left" title="Rotate left"><i class="fa fa-undo"></i></button>
+          <button id="rotate-right" title="Rotate right"><i class="fa fa-redo"></i></button>
+        </div>
+      </div>
+    </section>
+    <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-print"></i> Output & Download</h2>
+      <div class="canvas-area">
+        <canvas id="output-canvas"></canvas>
+      </div>
+      <div class="output-controls">
+        <label for="format">Format</label>
+        <select id="format">
+          <option value="jpg">JPG</option>
+          <option value="png">PNG</option>
+        </select>
+        <button class="btn-main" id="download-btn"><i class="fa fa-download"></i> Download</button>
+        <button class="btn-main" id="download-hq-btn"><i class="fa fa-download"></i> HQ Download</button>
+        <button class="btn-main" id="share-btn"><i class="fa fa-share-alt"></i> Share this App</button>
+      </div>
+    </section>
+    <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-cog"></i> Settings</h2>
+      
+      <!-- Quick Adjustments Section -->
+      <div class="settings-section">
+        <h3 style="color:#6366f1;margin-bottom:1em;"><i class="fa fa-bolt"></i> Quick Adjustments</h3>
+        <div class="quick-controls" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5em;">
+          <button class="btn-main" id="autofix-btn"><i class="fa fa-magic"></i> AutoFix Layout</button>
+          <button class="btn-main" id="increase-space-btn"><i class="fa fa-plus"></i> Increase Space</button>
+          <button class="btn-main" id="decrease-space-btn"><i class="fa fa-minus"></i> Decrease Space</button>
+        </div>
+      </div>
+
+      <!-- Manual Settings Section -->
+      <div class="settings-section" style="margin-top:2em;">
+        <h3 style="color:#6366f1;margin-bottom:1em;"><i class="fa fa-sliders-h"></i> Manual Settings</h3>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label for="unit">Unit</label>
+            <select id="unit">
+              <option value="mm">mm</option>
+              <option value="inch">inch</option>
+              <option value="px">px</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dpi">DPI</label>
+            <input type="number" id="dpi" min="72" max="1200" step="1" value="300">
+          </div>
+          <div class="form-group">
+            <label for="photo-width">Photo Width</label>
+            <input type="number" id="photo-width" min="10" max="1000" step="0.01" value="35">
+          </div>
+          <div class="form-group">
+            <label for="photo-height">Photo Height</label>
+            <input type="number" id="photo-height" min="10" max="1000" step="0.01" value="45">
+          </div>
+          <div class="form-group">
+            <label for="num-photos">No. of Photos</label>
+            <input type="number" id="num-photos" min="1" max="50" step="1" value="8">
+          </div>
+          <div class="form-group">
+            <label for="page-size">Page Size</label>
+            <select id="page-size">
+              <option value="a4">A4</option>
+              <option value="4r">4R (4"x6")</option>
+              <option value="custom">Custom</option>
+            </select>
+            <div id="custom-page-size" class="custom-page-inputs" style="display:none;">
+              <input type="number" id="custom-width" min="40" max="1000" step="0.1" placeholder="Width">
+              <input type="number" id="custom-height" min="40" max="1000" step="0.1" placeholder="Height">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="h-spacing">Horizontal Spacing</label>
+            <input type="number" id="h-spacing" min="0" max="100" step="0.01" value="10">
+          </div>
+          <div class="form-group">
+            <label for="v-spacing">Vertical Spacing</label>
+            <input type="number" id="v-spacing" min="0" max="100" step="0.01" value="10">
+          </div>
+          <div class="form-group">
+            <label for="margin-top">Margin Top</label>
+            <input type="number" id="margin-top" min="0" max="100" step="0.01" value="10">
+          </div>
+          <div class="form-group">
+            <label for="margin-left">Margin Left</label>
+            <input type="number" id="margin-left" min="0" max="100" step="0.01" value="10">
+          </div>
+          <div class="form-group form-switch">
+            <label for="autocenter-margin">Auto-Center Margins</label>
+            <label class="switch">
+              <input type="checkbox" id="autocenter-margin">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group form-switch">
+            <label for="show-cutlines">Show Cutlines</label>
+            <label class="switch">
+              <input type="checkbox" id="show-cutlines" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="branding">
+    <div style="margin-top:0.7em;">
+      Credits: Released by <strong>nishikant xalxo</strong> (<a href="https://www.instagram.com/nishix_vamp" target="_blank">@nishix_vamp</a>)
+      <br>
+      Owner: <b>shaderindia</b> &nbsp;|&nbsp; Release date: <b>26 May 2025</b>
+    </div>
+        <div class="footer-links mb-2 flex flex-wrap justify-center">
+            <a href="./about.html">About</a>
+            <a href="./faq.html">FAQ</a>
+            <a href="./privacy.html">Privacy Policy</a>
+            <a href="./terms.html">terms and condition</a>
+        </div>
+        <p>&copy; 2025 Nishikant Xalxo - Free Apps for You. All rights reserved.</p>
+        <p class="mt-2 text-sm">Built with <span class="text-red-500">&hearts;</span> and code.</p>
+  </footer>
+  
+  <!-- Modal for Info/How to Use -->
+  <div class="modal-glass" id="info-modal">
+    <div class="modal-content">
+      <button class="close-btn" id="close-info"><i class="fa fa-times"></i></button>
+      <h2><i class="fa fa-info-circle"></i> How to Use</h2>
+      <ul>
+        <li>Upload a clear, straight photo (JPG/PNG).</li>
+        <li>Use <b>AutoFix</b> to automatically optimize photo layout!</li>
+        <li>Use <b>Increase/Decrease Space</b> buttons for quick spacing adjustments.</li>
+        <li>Pinch/zoom/drag to center face. Use <b>Crop</b> to select exact area.</li>
+        <li>Try <b>Remove Background</b> for professional passport photos.</li>
+        <li>Adjust photo size, DPI, page size, margins as needed.</li>
+        <li>Download or print your ready-to-use passport photo sheet!</li>
+      </ul>
+      <div class="tip"><i class="fa fa-mobile-alt"></i> Mobile-friendly: Works on any device!</div>
+    </div>
+  </div>
+  
+  <!-- Supabase Authentication Script -->
+  <script>
+    // Initialize Supabase
+    const supabaseUrl = 'https://wtryahnysabnjdcypihl.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cnlhaG55c2FibmpkY3lwaWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMTM0NTAsImV4cCI6MjA3NzY4OTQ1MH0.uLi6N6y5WaT9v8rZqxLqQqx4sdNW2jfRHbR9fLfvw_k';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function checkAuth() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Logout error:', error);
+        } else {
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    checkAuth();
+  </script>
+  
+  <script src="script.js"></script>
 </body>
 </html>
