@@ -15,8 +15,8 @@
   <link rel="stylesheet" href="style.css">
   <meta charset="UTF-8">
  <title>Free Online Passport Photo Maker | Create & Print Passport Photos</title>
- <meta name="description" content="Create, crop, and print free passport photos online easily. Our tool provides ultra-smooth cropping and zooming, and perfect formatting for various passport photos sizes.">
- <meta name="keywords" content="passport photo maker, online passport photo, free passport photo, crop passport photo, print passport photo, passport photo online, digital passport photo, passport photo tool, passport photo editor">
+ <meta name="description" content="Create, crop, and print free passport photos online easily. Our tool provides ultra-smooth cropping and zooming, and perfect formatting for various passport photos. Mobile-friendly and user-friendly.">
+ <meta name="keywords" content="passport photo maker, online passport photo, free passport photo, crop passport photo, print passport photo, passport photo online, digital passport photo, passport photo tool, passport photo creator, free passport photo maker, photo cropping tool, passport size photo, passport photo printing">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -54,6 +54,42 @@
       Welcome to our <strong>free online passport photo maker</strong>! Easily <strong>create passport photos</strong>, crop, zoom, and format them
       for various requirements. Download or <strong>print passport photos</strong> with our user-friendly and completely free tool.
     </p>
+    <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-image"></i> Upload & Crop</h2>
+      <div class="upload-area">
+ <input type="file" id="photo-upload" accept="image/*" aria-label="Upload your photo">
+      </div>
+      <div id="preview-section" class="photo-preview-container hidden">
+        <div id="photo-preview-wrapper">
+          <img id="photo-preview" alt="photo preview">
+          <div id="crop-box" class="hidden"></div>
+        </div>
+        <div class="adjust-hint">
+          Pinch/Zoom or drag to adjust<br>
+          <b>Crop:</b> <button class="btn-main" id="crop-toggle"><i class="fa fa-crop"></i> Crop</button>
+        </div>
+        <div class="adjust-tools">
+          <button id="rotate-left" title="Rotate left"><i class="fa fa-undo"></i></button>
+          <button id="rotate-right" title="Rotate right"><i class="fa fa-redo"></i></button>
+        </div>
+      </div>
+    </section>
+    <section class="card card-glass shadow-lg">
+      <h2><i class="fa fa-print"></i> Output & Download</h2>
+      <div class="canvas-area">
+        <canvas id="output-canvas"></canvas>
+      </div>
+      <div class="output-controls">
+        <label for="format">Format</label>
+        <select id="format">
+          <option value="jpg">JPG</option>
+          <option value="png">PNG</option>
+        </select>
+        <button class="btn-main" id="download-btn"><i class="fa fa-download"></i> Download</button>
+        <button class="btn-main" id="download-hq-btn"><i class="fa fa-download"></i> HQ Download</button>
+        <button class="btn-main" id="share-btn"><i class="fa fa-share-alt"></i> Share this App</button>
+      </div>
+    </section>
     <section class="card card-glass shadow-lg">
       <h2><i class="fa fa-cog"></i> Settings</h2>
       <div class="settings-grid">
@@ -134,42 +170,6 @@
         </div>
       </div>
     </section>
-    <section class="card card-glass shadow-lg">
-      <h2><i class="fa fa-image"></i> Upload & Crop</h2>
-      <div class="upload-area">
- <input type="file" id="photo-upload" accept="image/*" aria-label="Upload your photo">
-      </div>
-      <div id="preview-section" class="photo-preview-container hidden">
-        <div id="photo-preview-wrapper">
-          <img id="photo-preview" alt="photo preview">
-          <div id="crop-box" class="hidden"></div>
-        </div>
-        <div class="adjust-hint">
-          Pinch/Zoom or drag to adjust<br>
-          <b>Crop:</b> <button class="btn-main" id="crop-toggle"><i class="fa fa-crop"></i> Crop</button>
-        </div>
-        <div class="adjust-tools">
-          <button id="rotate-left" title="Rotate left"><i class="fa fa-undo"></i></button>
-          <button id="rotate-right" title="Rotate right"><i class="fa fa-redo"></i></button>
-        </div>
-      </div>
-    </section>
-    <section class="card card-glass shadow-lg">
-      <h2><i class="fa fa-print"></i> Output & Download</h2>
-      <div class="canvas-area">
-        <canvas id="output-canvas"></canvas>
-      </div>
-      <div class="output-controls">
-        <label for="format">Format</label>
-        <select id="format">
-          <option value="jpg">JPG</option>
-          <option value="png">PNG</option>
-        </select>
-        <button class="btn-main" id="download-btn"><i class="fa fa-download"></i> Download</button>
-        <button class="btn-main" id="download-hq-btn"><i class="fa fa-download"></i> HQ Download</button>
-        <button class="btn-main" id="share-btn"><i class="fa fa-share-alt"></i> Share this App</button>
-      </div>
-    </section>
   </main>
   <footer>
     <div class="branding">
@@ -207,7 +207,7 @@
   <script>
     // Initialize Supabase
     const supabaseUrl = 'https://wtryahnysabnjdcypihl.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cnlhaG55c2FibmpkY3lwaWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMTM0NTAsImV4cCI6MjA3NzY4OTQ1MH0.uLi6Nfk8NQ9KmR_Igt9sb_wtQxtujm_lipT6TU3dwjM';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0cnlhaG55c2FibmpkY3lwaWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMTM0NTAsImV4cCI6MjA3NzY4OTQ1MH0.uLi6N6y5WaT9v8rZqxLqQqx4sdNW2jfRHbR9fLfvw_k';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // Check authentication on page load
