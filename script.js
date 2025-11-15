@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const increaseSpaceBtn = document.getElementById('increase-space-btn');
   const decreaseSpaceBtn = document.getElementById('decrease-space-btn');
   const removeBgBtn = document.getElementById('remove-bg-btn');
+  const undoBgBtn = document.getElementById('undo-bg-btn');
 
   // ==== Add "Reset Margins" Button Next to Auto-Center Switch ====
   const resetMarginsBtn = document.createElement('button');
@@ -60,7 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
   let unit = 'mm';
   let dpi = 300;
   let pageSize = 'a4';
-  let imgObj = new window.Image();
+  
+  // Image objects for background removal
+  let originalImgObj = new window.Image();  // Original uploaded image (never modified)
+  let processedImgObj = null;               // Background-removed version
+  let imgObj = originalImgObj;              // Points to current active image
+  let isBgRemoved = false;                  // Tracks if background removal is active
+  
   let imgLoaded = false;
   let imgURL = null;
   let rotate = 0;
@@ -206,6 +213,65 @@ document.addEventListener('DOMContentLoaded', function () {
     renderCanvas();
   }
 
+  // ==== Helper: Get Current Cropped Image Canvas ====
+  /**
+   * Creates an offscreen canvas with the currently visible/cropped region
+   * of the original image based on zoom, pan, rotation, and crop settings.
+   * @returns {HTMLCanvasElement} Canvas with the cropped image
+   */
+  function getCurrentCroppedImageCanvas() {
+    if (!imgLoaded || !originalImgObj.complete) {
+      throw new Error('No image loaded');
+    }
+    
+    const imgW = originalImgObj.naturalWidth;
+    const imgH = originalImgObj.naturalHeight;
+    const cropParams = getCropParams(imgW, imgH);
+    
+    // Create offscreen canvas for the cropped region
+    const canvas = document.createElement('canvas');
+    canvas.width = cropParams.sw;
+    canvas.height = cropParams.sh;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw the cropped region from the original image
+    ctx.drawImage(
+      originalImgObj,
+      cropParams.sx, cropParams.sy, cropParams.sw, cropParams.sh,
+      0, 0, canvas.width, canvas.height
+    );
+    
+    return canvas;
+  }
+
+  // ==== Background Segmentation Stub ====
+  /**
+   * Placeholder for client-side background segmentation.
+   * In a future PR, this should be replaced with an actual segmentation model
+   * using WebAssembly or TensorFlow.js (e.g., BodyPix, MediaPipe Selfie Segmentation).
+   * 
+   * For now, this returns the input ImageData unchanged to demonstrate the pipeline.
+   * 
+   * @param {ImageData} imageData - Input image data
+   * @returns {Promise<ImageData>} Processed image data with background removed
+   */
+  async function runBackgroundSegmentation(imageData) {
+    // TODO: Replace this stub with actual client-side segmentation
+    // Example implementation could use:
+    // - TensorFlow.js BodyPix model
+    // - MediaPipe Selfie Segmentation
+    // - A custom WASM module
+    //
+    // Expected behavior:
+    // 1. Run segmentation to identify person/foreground
+    // 2. Create alpha mask from segmentation
+    // 3. Apply mask to remove background (set alpha to 0 for background pixels)
+    // 4. Return modified ImageData
+    
+    // For now, return the original ImageData unchanged
+    return imageData;
+  }
+
   // ==== NEW: Remove Background Function ====
   async function removeBackground() {
     if (!imgLoaded) {
@@ -218,13 +284,85 @@ document.addEventListener('DOMContentLoaded', function () {
     removeBgBtn.disabled = true;
     
     try {
-      alert('Background removal feature requires API key setup.\n\nTo enable:\n1. Get API key from remove.bg\n2. Add it to the configuration\n3. The feature will then work automatically');
+      // Get the current cropped image as a canvas
+      const croppedCanvas = getCurrentCroppedImageCanvas();
+      const ctx = croppedCanvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, croppedCanvas.width, croppedCanvas.height);
+      
+      // Run background segmentation (currently a stub that returns unchanged ImageData)
+      const processedImageData = await runBackgroundSegmentation(imageData);
+      
+      // Draw processed ImageData onto a new canvas
+      const resultCanvas = document.createElement('canvas');
+      resultCanvas.width = processedImageData.width;
+      resultCanvas.height = processedImageData.height;
+      const resultCtx = resultCanvas.getContext('2d');
+      resultCtx.putImageData(processedImageData, 0, 0);
+      
+      // Convert to PNG data URL
+      const processedDataURL = resultCanvas.toDataURL('image/png');
+      
+      // Create new processedImgObj from the data URL
+      processedImgObj = new window.Image();
+      processedImgObj.onload = function() {
+        // Update state
+        isBgRemoved = true;
+        imgObj = processedImgObj;
+        
+        // Update preview to show processed image
+        photoPreview.src = processedDataURL;
+        
+        // Re-render canvas so all passport copies use the processed image
+        renderCanvas();
+        
+        // Show undo button
+        if (undoBgBtn) {
+          undoBgBtn.style.display = '';
+        }
+        
+        // Restore button state
+        removeBgBtn.innerHTML = originalText;
+        removeBgBtn.disabled = false;
+      };
+      processedImgObj.onerror = function() {
+        throw new Error('Failed to load processed image');
+      };
+      processedImgObj.src = processedDataURL;
+      
     } catch (error) {
       console.error('Background removal error:', error);
       alert('Error removing background. Please try again.');
-    } finally {
+      
+      // Restore button state
       removeBgBtn.innerHTML = originalText;
       removeBgBtn.disabled = false;
+    }
+  }
+
+  // ==== NEW: Undo Background Function ====
+  function undoBackground() {
+    if (!imgLoaded) {
+      return;
+    }
+    
+    if (!isBgRemoved) {
+      return;
+    }
+    
+    // Reset state
+    isBgRemoved = false;
+    processedImgObj = null;
+    imgObj = originalImgObj;
+    
+    // Restore preview to original image
+    photoPreview.src = imgURL;
+    
+    // Re-render canvas so all passport copies use original image
+    renderCanvas();
+    
+    // Hide undo button
+    if (undoBgBtn) {
+      undoBgBtn.style.display = 'none';
     }
   }
 
@@ -233,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (increaseSpaceBtn) increaseSpaceBtn.addEventListener('click', increaseSpace);
   if (decreaseSpaceBtn) decreaseSpaceBtn.addEventListener('click', decreaseSpace);
   if (removeBgBtn) removeBgBtn.addEventListener('click', removeBackground);
+  if (undoBgBtn) undoBgBtn.addEventListener('click', undoBackground);
 
   // ==== UI Event Handlers ====
   unitSelect.addEventListener('change', () => {
@@ -289,8 +428,14 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       if (imgURL) URL.revokeObjectURL(imgURL);
       imgURL = URL.createObjectURL(file);
-      imgObj = new window.Image();
-      imgObj.onload = function () {
+      
+      // Reset all state for new upload
+      originalImgObj = new window.Image();
+      processedImgObj = null;
+      imgObj = originalImgObj;
+      isBgRemoved = false;
+      
+      originalImgObj.onload = function () {
         imgLoaded = true;
         photoPreviewContainer.classList.remove('hidden');
         photoPreview.src = imgURL;
@@ -302,9 +447,19 @@ document.addEventListener('DOMContentLoaded', function () {
         cropBox.classList.add('hidden');
         showCropUI(false);
         snapPreviewTransform();
+        
+        // Reset button states
+        if (removeBgBtn) {
+          removeBgBtn.style.display = '';
+          removeBgBtn.disabled = false;
+        }
+        if (undoBgBtn) {
+          undoBgBtn.style.display = 'none';
+        }
+        
         renderCanvas();
       };
-      imgObj.src = imgURL;
+      originalImgObj.src = imgURL;
     }
   });
 
