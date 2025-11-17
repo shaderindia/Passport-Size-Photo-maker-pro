@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const closeInfo = document.getElementById('close-info');
   const themeBtn = document.getElementById('theme-btn');
 
-  // NEW: Quick Adjustment Buttons
+  // Quick Adjustment Buttons
   const autofixBtn = document.getElementById('autofix-btn');
   const increaseSpaceBtn = document.getElementById('increase-space-btn');
   const decreaseSpaceBtn = document.getElementById('decrease-space-btn');
@@ -61,13 +61,23 @@ document.addEventListener('DOMContentLoaded', function () {
   let pageSize = 'a4';
 
   let originalImgObj = new window.Image();  // Original uploaded image
-  let imgObj = originalImgObj;              // Current active image
-
   let imgLoaded = false;
   let imgURL = null;
   let rotate = 0;
   let cropActive = false, cropRect = null;
   let isDark = false;
+
+  // Zoom / pan state
+  let isImgPanning = false, lastPan = { x: 0, y: 0 };
+  let pinchZooming = false;
+  let pinchStart = {
+    dist: 0,
+    mid: { x: 0, y: 0 },
+    zoom: 1,
+    pan: { x: 0, y: 0 }
+  };
+  let zoomTarget = 1, zoomDisplay = 1;
+  let panTarget = { x: 0, y: 0 }, panDisplay = { x: 0, y: 0 };
 
   // ==== Unit Conversion ====
   function mmToInch(mm) { return mm / 25.4; }
@@ -146,23 +156,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  // ==== NEW: AutoFix Function ====
-  // Sets spacing and margins to 30 in the current unit (mm / inch / px)
+  // ==== AutoFix: set spacing & margins to 30 (current unit) ====
   function autoFix() {
     const fixedValue = 30;
 
-    // Apply 30 to spacing and margins in the current unit
     hSpacingInput.value = fixedValue;
     vSpacingInput.value = fixedValue;
     marginTopInput.value = fixedValue;
     marginLeftInput.value = fixedValue;
 
-    // Turn off auto-centering so these manual values are used
     if (autocenterCheck) {
       autocenterCheck.checked = false;
     }
 
-    // Visual feedback on the button
     if (autofixBtn) {
       const originalText = autofixBtn.innerHTML;
       const originalBg = autofixBtn.style.backgroundColor;
@@ -176,11 +182,10 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 2000);
     }
 
-    // Re-render with new values
     renderCanvas();
   }
 
-  // ==== NEW: Increase Space Function ====
+  // ==== Increase / Decrease Space ====
   function increaseSpace() {
     let increment = unit === 'mm' ? 2 : (unit === 'inch' ? mmToInch(2) : mmToPx(2, dpi));
     let currentH = parseFloat(hSpacingInput.value) || 0;
@@ -192,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
     renderCanvas();
   }
 
-  // ==== NEW: Decrease Space Function ====
   function decreaseSpace() {
     let decrement = unit === 'mm' ? 2 : (unit === 'inch' ? mmToInch(2) : mmToPx(2, dpi));
     let currentH = parseFloat(hSpacingInput.value) || 0;
@@ -204,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
     renderCanvas();
   }
 
-  // ==== NEW: Event Listeners for Quick Adjustments ====
+  // ==== Quick Adjustments Event Listeners ====
   if (autofixBtn) autofixBtn.addEventListener('click', autoFix);
   if (increaseSpaceBtn) increaseSpaceBtn.addEventListener('click', increaseSpace);
   if (decreaseSpaceBtn) decreaseSpaceBtn.addEventListener('click', decreaseSpace);
@@ -255,17 +259,6 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   // ==== Photo Upload ====
-  let isImgPanning = false, lastPan = { x: 0, y: 0 };
-  let pinchZooming = false;
-  let pinchStart = {
-    dist: 0,
-    mid: { x: 0, y: 0 },
-    zoom: 1,
-    pan: { x: 0, y: 0 }
-  };
-  let zoomTarget = 1, zoomDisplay = 1;
-  let panTarget = { x: 0, y: 0 }, panDisplay = { x: 0, y: 0 };
-
   photoUploadInput.addEventListener('change', (e) => {
     if (photoUploadInput.files && photoUploadInput.files[0]) {
       let file = photoUploadInput.files[0];
@@ -276,10 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (imgURL) URL.revokeObjectURL(imgURL);
       imgURL = URL.createObjectURL(file);
 
-      // Reset image state for new upload
       originalImgObj = new window.Image();
-      imgObj = originalImgObj;
-
       originalImgObj.onload = function () {
         imgLoaded = true;
         photoPreviewContainer.classList.remove('hidden');
@@ -298,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  // ==== Preview Transform Animation ====
   function animatePhoto() {
     zoomDisplay += (zoomTarget - zoomDisplay) * 0.23;
     panDisplay.x += (panTarget.x - panDisplay.x) * 0.23;
@@ -326,9 +317,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function snapPreviewTransform() { updatePreviewTransform(true); }
 
+  // ==== Touch / Mouse Pan & Zoom ====
   photoPreviewWrapper.addEventListener('gesturestart', e => e.preventDefault());
   photoPreviewWrapper.addEventListener('gesturechange', e => e.preventDefault());
   photoPreviewWrapper.addEventListener('gestureend', e => e.preventDefault());
+
   photoPreviewWrapper.addEventListener('touchstart', function(e) {
     if (!imgLoaded) return;
     if (e.touches.length === 2) {
@@ -350,6 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
     }
   }, { passive: false });
+
   photoPreviewWrapper.addEventListener('touchmove', function(e) {
     if (!imgLoaded) return;
     if (e.touches.length === 2 && pinchZooming) {
@@ -385,16 +379,19 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
     }
   }, { passive: false });
+
   photoPreviewWrapper.addEventListener('touchend', function(e) {
     if (e.touches.length < 2) pinchZooming = false;
     if (e.touches.length === 0) isImgPanning = false;
   }, { passive: false });
+
   photoPreviewWrapper.addEventListener('pointerdown', (e) => {
     if (!imgLoaded || (cropActive && e.target === cropBox)) return;
     isImgPanning = true;
     lastPan = { x: e.clientX, y: e.clientY };
     e.preventDefault();
   });
+
   photoPreviewWrapper.addEventListener('pointermove', (e) => {
     if (isImgPanning && !cropActive) {
       let dx = e.clientX - lastPan.x, dy = e.clientY - lastPan.y;
@@ -411,7 +408,9 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
     }
   });
+
   window.addEventListener('pointerup', () => { isImgPanning = false; });
+
   photoPreviewWrapper.addEventListener('wheel', (e) => {
     if (!imgLoaded) return;
     e.preventDefault();
@@ -650,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function () {
     link.href = outputCanvas.toDataURL(`image/${format === 'jpg' ? 'jpeg' : 'png'}`, 0.95);
     link.click();
   });
+
   downloadHQBtn.addEventListener('click', () => {
     let originalText = downloadHQBtn.innerHTML;
     downloadHQBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
@@ -673,6 +673,7 @@ document.addEventListener('DOMContentLoaded', function () {
       downloadHQBtn.disabled = false;
     }, 50);
   });
+
   shareBtn.addEventListener('click', async () => {
     const shareData = {
       title: "Nishix Passport Photo Maker",
@@ -700,6 +701,7 @@ document.addEventListener('DOMContentLoaded', function () {
     marginTopInput.value = 10;
     marginLeftInput.value = 10;
   }
+
   function init() {
     if (unitSelect.value === "px") {
       photoWidthInput.value = 300;
@@ -775,8 +777,8 @@ document.addEventListener('DOMContentLoaded', function () {
       ctx.restore();
     }
 
-    if (imgLoaded) {
-      let imgW = imgObj.naturalWidth, imgH = imgObj.naturalHeight;
+    if (imgLoaded && originalImgObj.naturalWidth > 0 && originalImgObj.naturalHeight > 0) {
+      let imgW = originalImgObj.naturalWidth, imgH = originalImgObj.naturalHeight;
       let cropParams = getCropParams(imgW, imgH);
       let drawn = 0;
       for (let r = 0; r < rows && drawn < np; r++) {
@@ -785,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function () {
           let y = margins.top + r * (dims.height + spacing.v);
           ctx.save();
           ctx.drawImage(
-            imgObj,
+            originalImgObj,
             cropParams.sx, cropParams.sy, cropParams.sw, cropParams.sh,
             x, y, dims.width, dims.height
           );
