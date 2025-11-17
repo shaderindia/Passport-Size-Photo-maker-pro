@@ -156,24 +156,25 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
-  // ==== AutoFix: set spacing & margins to 30 (current unit) ====
+  // ==== AutoFix: set fixed values regardless of unit ====
   function autoFix() {
-    const fixedValue = 30;
+    // Set spacing and margins directly, no conversion
+    hSpacingInput.value = 40;    // horizontal spacing
+    vSpacingInput.value = 40;    // vertical spacing
+    marginTopInput.value = 35;   // top margin
+    marginLeftInput.value = 100; // left margin
 
-    hSpacingInput.value = fixedValue;
-    vSpacingInput.value = fixedValue;
-    marginTopInput.value = fixedValue;
-    marginLeftInput.value = fixedValue;
-
+    // Turn off auto-centering so these manual values are used
     if (autocenterCheck) {
       autocenterCheck.checked = false;
     }
 
+    // Visual feedback on the button
     if (autofixBtn) {
       const originalText = autofixBtn.innerHTML;
       const originalBg = autofixBtn.style.backgroundColor;
 
-      autofixBtn.innerHTML = '<i class="fa fa-check"></i> 30/30 applied';
+      autofixBtn.innerHTML = '<i class="fa fa-check"></i> Spacing 40 / Margins 35, 100';
       autofixBtn.style.backgroundColor = '#10b981';
 
       setTimeout(() => {
